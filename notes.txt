@@ -1,0 +1,1 @@
+(phi, theta, R, omicron, dS) -> (phi, theta)

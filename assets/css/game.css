@@ -1,0 +1,111 @@
+:root {
+  --turn-speed: 0.18s;
+}
+
+.map-container {
+  /*background-color: gray;*/
+}
+
+svg.map {
+  width: 100%;
+  height: auto;
+  /*background-color: transparent;*/
+  max-height: 100vh;
+}
+
+.portal {
+  --color: #8C00BF;
+  fill: var(--color);
+  color: var(--color);
+}
+
+.tree {
+  --color: #33654A;
+  fill: var(--color);
+  color: var(--color);
+}
+
+.coin {
+  --color: #F1A208;
+  fill: var(--color);
+  color: var(--color);
+}
+
+.crate {
+  --color: #644432;
+  fill: var(--color);
+  color: var(--color);
+}
+
+.water {
+  --color: #005377;
+  fill: var(--color);
+  color: var(--color);
+}
+
+.wall {
+  --color: #CCC;
+  fill: var(--color);
+  color: var(--color);
+}
+
+.buggy {}
+
+.buggy.crashed {
+  opacity: 20%;
+}
+
+.buggy-0 {
+  fill: #FF0000;
+}
+
+.buggy-1 {
+  fill: #00FF00;
+}
+
+.buggy-2 {
+  fill: #0000FF;
+}
+
+.buggy-3 {
+  fill: #FFFF00;
+}
+
+.buggy-4 {
+  fill: #00FFFF;
+}
+
+.buggy-5 {
+  fill: #FF00FF;
+}
+
+.buggy-6 {
+  fill: #FF7700;
+}
+
+.buggy-7 {
+  fill: #FFFFFF;
+}
+
+.buggy-8 {
+  fill: #444444;
+}
+
+main.worlds {
+  display: grid;
+  grid-template-columns: auto auto;
+}
+
+main.worlds h2 {
+  justify-self: end;
+}
+
+@media (max-width: 40rem) {
+  main.worlds {
+    grid-template-columns: auto;
+  }
+
+  main.worlds h2 {
+    justify-self: start;
+  }
+}

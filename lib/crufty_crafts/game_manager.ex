@@ -26,28 +26,12 @@ defmodule CruftyCrafts.GameManager do
   end
 
   def host(handle: handle) do
-    host(handle: handle, map: "basic")
-  end
-
-  def host(handle: handle, map: map) do
-    case WorldMaps.get(map) do
-      %{dimensions: dimensions, world: world} ->
-        host(handle: handle, dimensions: dimensions, world: world)
-
-      _ ->
-        {:error, "map not found"}
-    end
-  end
-
-  def host(handle: handle, dimensions: dimensions, world: world) do
     game_id = SmallID.new()
     secret = SmallID.new()
 
     game =
       %Game{
         id: game_id,
-        world: world,
-        dimensions: dimensions,
         host_secret: secret,
         updated_at: Game.now()
       }
@@ -159,7 +143,6 @@ defmodule CruftyCrafts.GameManager do
         game
         |> Game.upsert_world(world)
         |> Game.upsert_player(secret, player)
-        |> Game.upsert_clock()
 
       player_game = CreateWorlds.get_player_game(game, player)
       LiveGame.update_game(game: game)
@@ -176,7 +159,6 @@ defmodule CruftyCrafts.GameManager do
     case Game.fetch_player(game, secret) do
       {:ok, player} ->
         player_game = CreateWorlds.get_player_game(game, player)
-        game = Game.upsert_clock(game)
         {:reply, {:ok, player_game}, game}
 
       err ->
@@ -186,9 +168,7 @@ defmodule CruftyCrafts.GameManager do
 
   @impl true
   def handle_call({:reset, secret}, _from, %Game{host_secret: secret} = game) do
-    game =
-      Game.reset_players(game)
-      |> Game.upsert_clock()
+    game = Game.reset_players(game)
 
     LiveGame.update_game(game: game)
     {:reply, {:ok, :ok}, game}

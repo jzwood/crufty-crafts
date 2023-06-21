@@ -6,6 +6,10 @@
   /*background-color: gray;*/
 }
 
+.handles {
+  font-family: Andale Mono, AndaleMono, monospace;
+}
+
 svg.map {
   width: 100%;
   height: auto;
@@ -49,46 +53,55 @@ svg.map {
   color: var(--color);
 }
 
-.buggy {}
+.craft {}
 
-.buggy.crashed {
+.craft.crashed {
   opacity: 20%;
 }
 
-.buggy-0 {
+.craft-0 {
   fill: #FF0000;
+  color: #FF0000;
 }
 
-.buggy-1 {
+.craft-1 {
   fill: #00FF00;
+  color: #00FF00;
 }
 
-.buggy-2 {
+.craft-2 {
   fill: #0000FF;
+  color: #0000FF;
 }
 
-.buggy-3 {
+.craft-3 {
   fill: #FFFF00;
+  color: #FFFF00;
 }
 
-.buggy-4 {
+.craft-4 {
   fill: #00FFFF;
+  color: #00FFFF;
 }
 
-.buggy-5 {
+.craft-5 {
   fill: #FF00FF;
+  color: #FF00FF;
 }
 
-.buggy-6 {
+.craft-6 {
   fill: #FF7700;
+  color: #FF7700;
 }
 
-.buggy-7 {
+.craft-7 {
   fill: #FFFFFF;
+  color: #FFFFFF;
 }
 
-.buggy-8 {
+.craft-8 {
   fill: #444444;
+  color: #444444;
 }
 
 main.worlds {

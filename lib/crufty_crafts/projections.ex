@@ -24,6 +24,13 @@ defmodule Projections do
     {x, y}
   end
 
+  def normalize_all(xys) do
+    bounds = bounds(xys)
+
+    xys
+    |> Enum.map(&normalize(&1, bounds))
+  end
+
   defp cot(a) do
     1 / :math.tan(a)
   end
@@ -80,7 +87,11 @@ defmodule Projections do
         (:math.sin(lat0) * :math.cos(lat) -
            :math.cos(lat0) * :math.sin(lat) * :math.cos(long - long0))
 
-    {x, y}
+    if long < -0.5 * :math.pi() or long > 0.5 * :math.pi() do
+      {x, y}
+    else
+      {-x, -y}
+    end
   end
 
   def american_polyconic_meridians() do
@@ -89,7 +100,7 @@ defmodule Projections do
       lat <- -90..90//5,
       do: american_polyconic_projection(deg_to_rad(lat), deg_to_rad(long))
     )
-    |> Enum.map(fn {x, y} -> {x + 3.2, y + 2.5} end)
+    |> normalize_all()
   end
 
   def cassini_meridians() do
@@ -98,7 +109,7 @@ defmodule Projections do
       lat <- -90..90//5,
       do: cassini_projection(deg_to_rad(lat), deg_to_rad(long))
     )
-    |> Enum.map(fn {x, y} -> {x + 4, y + 4} end)
+    |> normalize_all()
   end
 
   def azimuthal_equidistant_meridians() do
@@ -107,31 +118,12 @@ defmodule Projections do
       lat <- -90..90//5,
       do: azimuthal_equidistant_projection(deg_to_rad(lat), deg_to_rad(long))
     )
-    |> Enum.map(fn {x, y} -> {x + 4, y + 4} end)
-  end
-
-  def hammer_retroazimuthal_front_meridians() do
-    for long <- Enum.concat(-180..-90//10, 90..180//10),
-        lat <- -90..90//10,
-        do: hammer_retroazimuthal_projection(deg_to_rad(lat), deg_to_rad(long))
-  end
-
-  def hammer_retroazimuthal_back_meridians() do
-    for(
-      long <- -90..90//10,
-      lat <- -90..90//10,
-      do: hammer_retroazimuthal_projection(deg_to_rad(lat), deg_to_rad(long))
-    )
-    |> Enum.map(fn {x, y} -> {-x, -y} end)
+    |> normalize_all()
   end
 
   def hammer_retroazimuthal_meridians() do
-    xys =
-      Enum.concat(hammer_retroazimuthal_front_meridians(), hammer_retroazimuthal_back_meridians())
-
-    bounds = bounds(xys)
-
-    xys
-    |> Enum.map(&normalize(&1, bounds))
+    for long <- -180..180//5,
+        lat <- -90..90//5,
+        do: hammer_retroazimuthal_projection(deg_to_rad(lat), deg_to_rad(long))
   end
 end

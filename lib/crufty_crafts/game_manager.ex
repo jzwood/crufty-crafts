@@ -4,7 +4,6 @@ defmodule CruftyCrafts.GameManager do
   """
   use GenServer
   alias CruftyCraftsWeb.{LiveGame, LiveHome}
-  alias CruftyCrafts.WorldMaps
 
   defp move_example(game_id: game_id, secret: secret) do
     "curl -X GET #{CruftyCraftsWeb.Endpoint.url()}/api/game/#{game_id}/player/#{secret}/move/N"
@@ -137,17 +136,14 @@ defmodule CruftyCrafts.GameManager do
 
   @impl true
   def handle_call({:move, secret, move}, _from, %Game{} = game) do
-    with {:ok, player} <- Game.fetch_player(game, secret),
-         {:ok, world, player} <- World.next_world(game: game, player: player, move: move) do
+    with {:ok, player} <- Game.fetch_player(game, secret) do
       game =
         game
-        |> Game.upsert_world(world)
         |> Game.upsert_player(secret, player)
 
-      player_game = CreateWorlds.get_player_game(game, player)
       LiveGame.update_game(game: game)
 
-      {:reply, {:ok, player_game}, game}
+      {:reply, {:ok, game}, game}
     else
       {:error, _msg} = err -> {:reply, err, game}
       err -> {:reply, err, game}
@@ -157,9 +153,8 @@ defmodule CruftyCrafts.GameManager do
   @impl true
   def handle_call({:info, secret}, _from, %Game{} = game) do
     case Game.fetch_player(game, secret) do
-      {:ok, player} ->
-        player_game = CreateWorlds.get_player_game(game, player)
-        {:reply, {:ok, player_game}, game}
+      {:ok, _player} ->
+        {:reply, {:ok, game}, game}
 
       err ->
         {:reply, {:error, err}, game}

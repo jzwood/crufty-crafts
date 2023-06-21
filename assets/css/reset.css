@@ -9,11 +9,21 @@
 html, body {
   height: 100%;
   font-family: Georgia, serif;
+  background-color: #17191a;
+  color: #e3e6ea;
 }
 
 body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: #5898c8;
+}
+
+a:visited {
+  color: #8c7fde;
 }
 
 svg {

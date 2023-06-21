@@ -20,7 +20,7 @@ defmodule CruftyCraftsWeb.LiveWorlds do
         version="1.1"
         class="map"
       >
-        <%= for {x, y} <- Projections.hammer_retroazimuthal_meridians() do %>
+        <%= for {x, y} <- Projections.hammer_retroazimuthal_meridians() |> Projections.normalize_all() do %>
           <circle cx={x} cy={y} r="0.001" fill="#444" />
         <% end %>
       </svg>
@@ -28,3 +28,10 @@ defmodule CruftyCraftsWeb.LiveWorlds do
     """
   end
 end
+
+"""
+        <%= for {x, y} <- Projections.hammer_retroazimuthal_meridians() do %>
+        <%= for {x, y} <- Projections.azimuthal_equidistant_meridians() do %>
+        <%= for {x, y} <- Projections.american_polyconic_meridians() do %>
+        <%= for {x, y} <- Projections.cassini_meridians() do %>
+"""

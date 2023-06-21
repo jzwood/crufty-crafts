@@ -36,21 +36,33 @@ defmodule CruftyCraftsWeb.LiveGame do
     CruftyCraftsWeb.Endpoint.broadcast_from(self(), game_id, "update_game", game: game)
   end
 
-  # defp avg({x1, y1}, {x2, y2}), do: {0.5 * (x1 + x2), 0.5 * (y1 + y2)}
-  defp manhattan_distance({x1, y1}, {x2, y2}), do: abs(x2 - x1) + abs(y2 - y1)
-
   def render(assigns) do
     ~H"""
-    <div class="map-container">
+    <div class="bg-black">
+      <%= for %Player{ handle: handle, index: index } <- Map.values(@game.players) do %>
+        <p class={"handles craft-#{index} ttc absolute top-1 left-1"}><%= handle %></p>
+      <% end %>
       <svg
-        viewBox="0 0 10 10"
+        viewBox="0 0 1 1"
         xmlns="http://www.w3.org/2000/svg"
         version="1.1"
         class="map"
       >
-      <rect x="0" y="0" width="10" height="10" fill="black" shape-rendering="optimizeSpeed" />
-        <%= for {x, y} <- Projections.meridians() do %>
-          <circle cx={x} cy={y} r="0.01" stroke="white" />
+        <%
+          xys = Projections.hammer_retroazimuthal_meridians()
+          bounds = Projections.bounds(xys)
+          players = @game.players
+          |> Map.values()
+          |> Enum.map(fn %Player{lat: lat, long: long} -> Projections.hammer_retroazimuthal_projection(lat, long) end)
+          |> Enum.map(&Projections.normalize(&1, bounds))
+          |> Enum.zip(Map.values(@game.players))
+          |> IO.inspect
+        %>
+        <%= for {x, y} <- Enum.map(xys, &Projections.normalize(&1, bounds)) do %>
+          <circle cx={x} cy={y} r="0.001" fill="#222" />
+        <% end %>
+        <%= for {{x, y}, %Player{index: index}} <- players do %>
+          <circle cx={x} cy={y} r="0.002" class={"craft-#{index}"} />
         <% end %>
       </svg>
     </div>

@@ -32,33 +32,20 @@ defmodule CruftyCraftsWeb.LiveHome do
       <main class="worlds mw8 center items-baseline gv3 gh4 ph3 pv2 pv4-m pv5-l">
         <h2>crufty crafts</h2>
         <p class="f4">
-          write the best dune-buggy AI.<br>
-          collect gold.<br>
-          avoid crashing.<br>
+          pilot a spacecraft with AI.<br>
+          shoot lasers.<br>
           PvP friends.
         </p>
         <h2>host</h2>
         <div>
-          <pre class="break-spaces break-word">GET /api/host/&lt;handle&gt;[/map/&lt;name&gt;]</pre>
-          <ol>
-            <li class="f4">
-              see <a data-phx-link="redirect" data-phx-link-state="push" href="/worlds">maps</a>
-            </li>
-          </ol>
+          <pre class="break-spaces break-word">GET /api/host/&lt;handle&gt;</pre>
         </div>
         <h2>friends</h2>
         <pre class="break-spaces break-word">GET /api/game/&lt;game_id&gt;/join/&lt;handle&gt;</pre>
-        <h2>move<sup class="courier normal">*</sup></h2>
+        <h2>api<sup class="courier normal">*</sup></h2>
         <pre class="break-spaces break-word">GET /api/game/&lt;game_id&gt;/player/&lt;secret&gt;/move/&lt;N|E|S|W&gt;</pre>
         <h2>learn</h2>
-        <ol>
-          <li>
-            <a class="f4" href="https://github.com/jzwood/crufty-crafts/#complete-api" target="_blank">full api</a>
-          </li>
-          <li>
-            <a class="f4" href="https://github.com/jzwood/crufty-crafts/tree/main/examples" target="_blank">example code</a>
-          </li>
-        </ol>
+          <a class="f4" href="https://github.com/jzwood/crufty-crafts/#complete-api" target="_blank">api</a>
         <h2>watch</h2>
         <%= if length(@games) == 0 do %>
           <i class="f4">no games in progress</i>
@@ -72,7 +59,7 @@ defmodule CruftyCraftsWeb.LiveHome do
         </ol>
       </main>
       <div class="flex-grow-1"></div>
-      <footer class="flex items-center justify-between gh2 mt2 pv1 ph3 bg-moon-gray">
+      <footer class="flex items-center justify-between gh2 mt2 pv1 ph3">
         <div class="flex gh2 items-baseline">
           <h3 class="courier normal">*</h3>
           <i>api rate limit: 10 requests / second</i>

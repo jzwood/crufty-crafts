@@ -16,7 +16,7 @@ defmodule Game do
 
   defstruct id: nil,
             host_secret: "",
-            players: [],
+            players: %{},
             updated_at: 0
 
   def expire_seconds(), do: @expire_seconds
@@ -36,8 +36,8 @@ defmodule Game do
 
     Game.upsert_player(game, secret, %Player{
       handle: handle,
-      lat: 0,
-      long: 0,
+      lat: :math.pi / 8,
+      long: :math.pi / 6,
       index: index
     })
   end
@@ -72,7 +72,7 @@ defmodule Game do
   end
 
   def upsert_player(%Game{} = game, secret, player) do
-    %Game{game | players: [player | game.players]}
+    %Game{game | players: Map.put(game.players, secret, player)}
   end
 
   def upsert_clock(%Game{} = game) do
@@ -82,8 +82,8 @@ end
 
 defmodule World do
   @moduledoc false
-  @history_limit 45
 
   defp move(%Game{} = game, %Player{} = player) do
+    game
   end
 end

@@ -93,8 +93,7 @@ defmodule Game do
 
     bearing = :math.atan2(y, x)
 
-    bearing
-    # brng = (bearing * 180 / :math.PI + 360) % 360
+    Projections.mod(bearing + :math.pi(), 2 * :math.pi())
   end
 
   defp next_lat_long(lat1, long1, bearing) do
@@ -114,22 +113,9 @@ defmodule Game do
           :math.cos(d / r) - :math.sin(lat1) * :math.sin(lat2)
         )
 
-    long2 = Projections.mod(long2 + 3 * :math.pi, 2 * :math.pi) - :math.pi
-    #lat2 =
-      #cond do
-        #lat2 > 0.5 * :math.pi() -> lat2 - :math.pi()
-        #lat2 < -0.5 * :math.pi() -> lat2 + :math.pi()
-        #true -> lat2
-      #end
+    long2 = Projections.mod(long2 + 3 * :math.pi(), 2 * :math.pi()) - :math.pi()
 
-    #long2 =
-      #cond do
-        #long2 > :math.pi() -> long2 - :math.pi() * 2
-        #long2 < -:math.pi() -> long2 + :math.pi() * 2
-        #true -> long2
-      #end
-
-    bearing = Projections.mod(next_bearing(lat2, long2, lat1, long1) + :math.pi, 2 * :math.pi)
+    bearing = next_bearing(lat2, long2, lat1, long1)
 
     {lat2, long2, bearing}
   end

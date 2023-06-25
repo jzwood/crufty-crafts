@@ -216,7 +216,6 @@ defmodule CruftyCrafts.GameManager do
 
     game = %Game{game | players: players}
     LiveGame.update_game(game: game)
-    IO.inspect(Player.debug_players(Map.values(players)), label: "GAME")
     {:reply, :ok, game}
   end
 end

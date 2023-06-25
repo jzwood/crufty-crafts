@@ -37,17 +37,17 @@ defmodule CruftyCraftsWeb.LiveGame do
   end
 
   def projection(lat, long) do
-    # Projections.hammer_retroazimuthal_projection(lat, long)
-     Projections.azimuthal_equidistant_projection(lat, long)
+    Projections.hammer_retroazimuthal_projection(lat, long)
+    # Projections.azimuthal_equidistant_projection(lat, long)
     # Projections.cassini_projection(lat, long)
-    #Projections.equirectangular_projection(lat, long)
+    # Projections.equirectangular_projection(lat, long)
   end
 
   def meridians() do
-    # Projections.hammer_retroazimuthal_meridians()
-     Projections.azimuthal_equidistant_meridians()
+    Projections.hammer_retroazimuthal_meridians()
+    # Projections.azimuthal_equidistant_meridians()
     # Projections.cassini_meridians()
-    #Projections.equirectangular_meridians()
+    # Projections.equirectangular_meridians()
   end
 
   def normalize_player_positions(player_map, bounds) do
@@ -63,7 +63,7 @@ defmodule CruftyCraftsWeb.LiveGame do
     ~H"""
     <div class="bg-black">
       <%= for %Player{ handle: handle, index: index } <- Map.values(@game.players) do %>
-        <p class={"handles craft-#{index} ttc absolute top-1 left-1"}><%= handle %></p>
+        <p class={"handles craft-#{index} ttc absolute pt2 left-1"}><%= handle %></p>
       <% end %>
       <svg
         viewBox="0 0 1 1"

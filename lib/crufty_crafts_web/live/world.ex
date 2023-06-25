@@ -36,6 +36,29 @@ defmodule CruftyCraftsWeb.LiveGame do
     CruftyCraftsWeb.Endpoint.broadcast_from(self(), game_id, "update_game", game: game)
   end
 
+  def projection(lat, long) do
+    # Projections.hammer_retroazimuthal_projection(lat, long)
+     Projections.azimuthal_equidistant_projection(lat, long)
+    # Projections.cassini_projection(lat, long)
+    #Projections.equirectangular_projection(lat, long)
+  end
+
+  def meridians() do
+    # Projections.hammer_retroazimuthal_meridians()
+     Projections.azimuthal_equidistant_meridians()
+    # Projections.cassini_meridians()
+    #Projections.equirectangular_meridians()
+  end
+
+  def normalize_player_positions(player_map, bounds) do
+    players = Map.values(player_map)
+
+    players
+    |> Enum.map(fn %Player{lat: lat, long: long} -> projection(lat, long) end)
+    |> Enum.map(&Projections.normalize(&1, bounds))
+    |> Enum.zip(players)
+  end
+
   def render(assigns) do
     ~H"""
     <div class="bg-black">
@@ -49,14 +72,9 @@ defmodule CruftyCraftsWeb.LiveGame do
         class="map"
       >
         <%
-          xys = Projections.hammer_retroazimuthal_meridians()
+          xys = meridians()
           bounds = Projections.bounds(xys)
-          players = @game.players
-          |> Map.values()
-          |> Enum.map(fn %Player{lat: lat, long: long} -> Projections.hammer_retroazimuthal_projection(lat, long) end)
-          |> Enum.map(&Projections.normalize(&1, bounds))
-          |> Enum.zip(Map.values(@game.players))
-          |> IO.inspect
+          players = normalize_player_positions(@game.players, bounds)
         %>
         <%= for {x, y} <- Enum.map(xys, &Projections.normalize(&1, bounds)) do %>
           <circle cx={x} cy={y} r="0.001" fill="#222" />

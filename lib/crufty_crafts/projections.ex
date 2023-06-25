@@ -31,12 +31,26 @@ defmodule Projections do
     |> Enum.map(&normalize(&1, bounds))
   end
 
+  def mod(a, b) do
+    a - b * :math.floor(a / b)
+  end
+
   defp cot(a) do
     1 / :math.tan(a)
   end
 
-  defp deg_to_rad(deg) do
+  def deg_to_rad(deg) do
     deg * :math.pi() / 180
+  end
+
+  def rad_to_deg(rad) do
+    rad * 180 / :math.pi()
+  end
+
+  def equirectangular_projection(lat, long) do
+    x = long
+    y = lat
+    {x, y}
   end
 
   def american_polyconic_projection(lat, long, lat0 \\ 0, long0 \\ 0)
@@ -100,7 +114,6 @@ defmodule Projections do
       lat <- -90..90//5,
       do: american_polyconic_projection(deg_to_rad(lat), deg_to_rad(long))
     )
-    |> normalize_all()
   end
 
   def cassini_meridians() do
@@ -109,7 +122,6 @@ defmodule Projections do
       lat <- -90..90//5,
       do: cassini_projection(deg_to_rad(lat), deg_to_rad(long))
     )
-    |> normalize_all()
   end
 
   def azimuthal_equidistant_meridians() do
@@ -118,7 +130,14 @@ defmodule Projections do
       lat <- -90..90//5,
       do: azimuthal_equidistant_projection(deg_to_rad(lat), deg_to_rad(long))
     )
-    |> normalize_all()
+  end
+
+  def equirectangular_meridians() do
+    for(
+      long <- -180..180//5,
+      lat <- -90..90//5,
+      do: equirectangular_projection(deg_to_rad(lat), deg_to_rad(long))
+    )
   end
 
   def hammer_retroazimuthal_meridians() do

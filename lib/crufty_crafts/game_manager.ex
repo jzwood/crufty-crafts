@@ -61,6 +61,10 @@ defmodule CruftyCrafts.GameManager do
     Registry.select(:game_registry, [{{:"$1", :_, :_}, [], [:"$1"]}])
   end
 
+  def tick(game_id: game_id) do
+    genserver_call(game_id, :tick)
+  end
+
   def move(game_id: game_id, secret: secret, move: move) do
     genserver_call(game_id, {:move, secret, move})
   end
@@ -83,6 +87,11 @@ defmodule CruftyCrafts.GameManager do
 
   def update_liveview_list() do
     LiveHome.update_world_list(list_games())
+  end
+
+  def game_tick() do
+    list_games()
+    |> Enum.each(&tick(game_id: &1))
   end
 
   def kill_expired_games() do
@@ -196,5 +205,18 @@ defmodule CruftyCrafts.GameManager do
   @impl true
   def handle_call(:expired?, _from, %Game{} = game) do
     {:reply, Game.is_expired(game), game}
+  end
+
+  @impl true
+  def handle_call(:tick, _from, %Game{players: players} = game) do
+    players =
+      players
+      |> Enum.map(fn {secret, player} -> {secret, Game.next_player(player)} end)
+      |> Map.new()
+
+    game = %Game{game | players: players}
+    LiveGame.update_game(game: game)
+    IO.inspect(Player.debug_players(Map.values(players)), label: "GAME")
+    {:reply, :ok, game}
   end
 end

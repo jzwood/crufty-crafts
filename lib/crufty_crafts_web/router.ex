@@ -18,7 +18,6 @@ defmodule CruftyCraftsWeb.Router do
     pipe_through :api
 
     get "/host/:handle", GameController, :host
-    get "/host/:handle/map/:map", GameController, :host
     get "/game/:game_id/join/:handle", GameController, :join
     get "/game/:game_id/player/:secret/info", GameController, :info
     get "/game/:game_id/player/:secret/move/:direction", GameController, :move
@@ -33,6 +32,7 @@ defmodule CruftyCraftsWeb.Router do
     live("/", LiveHome)
     live("/worlds", LiveWorlds)
     live("/game/:game_id", LiveGame)
+    live("/game/:game_id/:projection", LiveGame)
   end
 
   # Other scopes may use custom stacks.

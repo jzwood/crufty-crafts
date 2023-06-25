@@ -7,6 +7,12 @@ defmodule CruftyCraftsWeb.LiveGame do
   use Phoenix.HTML
   alias CruftyCraftsWeb.GameComponent
 
+
+  @hammer_retroazimuthal "hammer-retroazimuthal"
+  @azimuthal_equidistant "azimuthal-equidistant"
+  @cassini "cassini"
+  @equirectangular "equirectangular"
+
   def mount(%{"game_id" => "random"} = session, params, socket) do
     with [game_id | _games] <- CruftyCrafts.GameManager.list_games(),
          session <- Map.replace(session, "game_id", game_id),
@@ -17,15 +23,19 @@ defmodule CruftyCraftsWeb.LiveGame do
     end
   end
 
-  def mount(%{"game_id" => game_id} = _session, _params, socket) do
+  def mount(%{"game_id" => game_id, "projection" => projection} = _session, _params, socket) do
     case CruftyCrafts.GameManager.debug(game_id: game_id) do
       %Game{} = game ->
         CruftyCraftsWeb.Endpoint.subscribe(game_id)
-        {:ok, assign(socket, :game, game)}
+        {:ok, assign(socket, game: game, projection: projection)}
 
       _ ->
         {:ok, assign(socket, :game, %Game{})}
     end
+  end
+
+  def mount(%{"game_id" => game_id} = _session, params, socket) do
+    mount(%{"game_id" => game_id, "projection" => nil}, params, socket)
   end
 
   def handle_info(msg, socket) do
@@ -36,25 +46,31 @@ defmodule CruftyCraftsWeb.LiveGame do
     CruftyCraftsWeb.Endpoint.broadcast_from(self(), game_id, "update_game", game: game)
   end
 
-  def projection(lat, long) do
-    Projections.hammer_retroazimuthal_projection(lat, long)
-    # Projections.azimuthal_equidistant_projection(lat, long)
-    # Projections.cassini_projection(lat, long)
-    # Projections.equirectangular_projection(lat, long)
+  def project(projection, lat, long) do
+    case projection do
+      nil -> Projections.hammer_retroazimuthal_projection(lat, long)
+      @hammer_retroazimuthal -> Projections.hammer_retroazimuthal_projection(lat, long)
+      @azimuthal_equidistant -> Projections.azimuthal_equidistant_projection(lat, long)
+      @cassini -> Projections.cassini_projection(lat, long)
+      @equirectangular -> Projections.equirectangular_projection(lat, long)
+    end
   end
 
-  def meridians() do
-    Projections.hammer_retroazimuthal_meridians()
-    # Projections.azimuthal_equidistant_meridians()
-    # Projections.cassini_meridians()
-    # Projections.equirectangular_meridians()
+  def meridians(projection) do
+    case projection do
+      nil -> Projections.hammer_retroazimuthal_meridians()
+      @hammer_retroazimuthal -> Projections.hammer_retroazimuthal_meridians()
+      @azimuthal_equidistant -> Projections.azimuthal_equidistant_meridians()
+      @cassini -> Projections.cassini_meridians()
+      @equirectangular -> Projections.equirectangular_meridians()
+    end
   end
 
-  def normalize_player_positions(player_map, bounds) do
+  def normalize_player_positions(player_map, bounds, projection) do
     players = Map.values(player_map)
 
     players
-    |> Enum.map(fn %Player{lat: lat, long: long} -> projection(lat, long) end)
+    |> Enum.map(fn %Player{lat: lat, long: long} -> project(projection, lat, long) end)
     |> Enum.map(&Projections.normalize(&1, bounds))
     |> Enum.zip(players)
   end
@@ -72,9 +88,9 @@ defmodule CruftyCraftsWeb.LiveGame do
         class="map"
       >
         <%
-          xys = meridians()
+          xys = meridians(@projection)
           bounds = Projections.bounds(xys)
-          players = normalize_player_positions(@game.players, bounds)
+          players = normalize_player_positions(@game.players, bounds, @projection)
         %>
         <%= for {x, y} <- Enum.map(xys, &Projections.normalize(&1, bounds)) do %>
           <circle cx={x} cy={y} r="0.001" fill="#222" />

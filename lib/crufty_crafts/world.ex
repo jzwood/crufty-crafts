@@ -1,6 +1,6 @@
 defmodule Player do
   @moduledoc false
-  @derive Jason.Encoder
+  @derive {Jason.Encoder, only: [:handle, :lat, :long, :bearing]}
   defstruct handle: nil,
             index: 0,
             boom: 0,
@@ -18,6 +18,10 @@ defmodule Player do
       }
     end)
   end
+
+  def rotate(%Player{bearing: bearing} = player, angle) do
+    %Player{player | bearing: Projections.mod(bearing + angle, 2 * :math.pi())}
+  end
 end
 
 defmodule Game do
@@ -29,6 +33,10 @@ defmodule Game do
             host_secret: "",
             players: %{},
             updated_at: 0
+
+  def public(%Game{players: players}) do
+    Map.values(players)
+  end
 
   def expire_seconds(), do: @expire_seconds
   def game_loop_ms(), do: @game_loop_ms

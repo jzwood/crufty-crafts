@@ -5,8 +5,8 @@ defmodule CruftyCrafts.GameManager do
   use GenServer
   alias CruftyCraftsWeb.{LiveGame, LiveHome}
 
-  defp move_example(game_id: game_id, secret: secret) do
-    "curl -X GET #{CruftyCraftsWeb.Endpoint.url()}/api/game/#{game_id}/player/#{secret}/move/N"
+  defp rotate_example(game_id: game_id, secret: secret) do
+    "curl -X GET #{CruftyCraftsWeb.Endpoint.url()}/api/game/#{game_id}/player/#{secret}/rotate/0"
   end
 
   defp spectate_example(game_id: game_id) do
@@ -36,7 +36,7 @@ defmodule CruftyCrafts.GameManager do
       }
       |> Game.add_player(handle: handle, secret: secret)
 
-    example = move_example(game_id: game_id, secret: secret)
+    example = rotate_example(game_id: game_id, secret: secret)
     watch = spectate_example(game_id: game_id)
 
     GenServer.start(__MODULE__, game, name: get_name(game_id))
@@ -65,8 +65,8 @@ defmodule CruftyCrafts.GameManager do
     genserver_call(game_id, :tick)
   end
 
-  def move(game_id: game_id, secret: secret, move: move) do
-    genserver_call(game_id, {:move, secret, move})
+  def rotate(game_id: game_id, secret: secret, angle: angle) do
+    genserver_call(game_id, {:rotate, secret, angle})
   end
 
   def info(game_id: game_id, secret: secret) do
@@ -128,13 +128,11 @@ defmodule CruftyCrafts.GameManager do
     if Enum.count(new_game.players) > 9 do
       {:reply, {:error, "game is full"}, game}
     else
-      example = move_example(game_id: game_id, secret: secret)
       watch = spectate_example(game_id: game_id)
 
       LiveGame.update_game(game: new_game)
 
-      {:reply, {:ok, %{game_id: game_id, secret: secret, example: example, watch: watch}},
-       new_game}
+      {:reply, {:ok, %{game_id: game_id, secret: secret, watch: watch}}, new_game}
     end
   end
 
@@ -144,15 +142,18 @@ defmodule CruftyCrafts.GameManager do
   end
 
   @impl true
-  def handle_call({:move, secret, move}, _from, %Game{} = game) do
+  def handle_call({:rotate, secret, angle}, _from, %Game{} = game) do
     with {:ok, player} <- Game.fetch_player(game, secret) do
+      player = Player.rotate(player, angle)
+
       game =
         game
+        |> Game.upsert_clock()
         |> Game.upsert_player(secret, player)
 
       LiveGame.update_game(game: game)
 
-      {:reply, {:ok, game}, game}
+      {:reply, {:ok, Game.public(game)}, game}
     else
       {:error, _msg} = err -> {:reply, err, game}
       err -> {:reply, err, game}
@@ -215,6 +216,7 @@ defmodule CruftyCrafts.GameManager do
       |> Map.new()
 
     game = %Game{game | players: players}
+    # Player.debug_players(Map.values(players)) |> IO.inspect(label: "DEBUG")
     LiveGame.update_game(game: game)
     {:reply, :ok, game}
   end

@@ -7,7 +7,6 @@ defmodule CruftyCraftsWeb.LiveGame do
   use Phoenix.HTML
   alias CruftyCraftsWeb.GameComponent
 
-
   @hammer_retroazimuthal "hammer-retroazimuthal"
   @azimuthal_equidistant "azimuthal-equidistant"
   @cassini "cassini"

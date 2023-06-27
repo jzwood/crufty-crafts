@@ -43,10 +43,21 @@ defmodule CruftyCraftsWeb.GameController do
 
   def kick(conn, _), do: failure(conn, "invalid kick args")
 
-  # MOVE
-  def move(conn, %{"game_id" => game_id, "secret" => secret, "direction" => direction}) do
+  defp parse_angle(angle: angle) do
+    case Float.parse(angle) do
+      {angle, ""} -> {:ok, angle}
+      {angle, "rad"} -> {:ok, angle}
+      {angle, "deg"} -> {:ok, Projections.deg_to_rad(angle)}
+      :error -> :error
+      err -> err
+    end
+  end
+
+  # rotate
+  def rotate(conn, %{"game_id" => game_id, "secret" => secret, "angle" => angle}) do
     with :ok <- CruftyCraftsWeb.Throttle.rate_limit(secret),
-         {:ok, game} <- GameManager.move(game_id: game_id, secret: secret, move: direction) do
+         {:ok, angle} <- parse_angle(angle: angle),
+         {:ok, game} <- GameManager.rotate(game_id: game_id, secret: secret, angle: angle) do
       success(conn, game)
     else
       {:error, msg} -> failure(conn, msg)
@@ -54,7 +65,7 @@ defmodule CruftyCraftsWeb.GameController do
     end
   end
 
-  def move(conn, _), do: failure(conn, "invalid move args")
+  def rotate(conn, _), do: failure(conn, "invalid move args")
 
   # INFO
   def info(conn, %{"game_id" => game_id, "secret" => secret}) do

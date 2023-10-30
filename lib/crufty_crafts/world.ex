@@ -1,9 +1,25 @@
+defmodule Missile do
+  @moduledoc false
+  @derive {Jason.Encoder, only: [:lat, :long, :bearing, :ticks]}
+  defstruct id: nil,
+            lat: nil,
+            long: nil,
+            bearing: 0,
+            ticks: 0
+
+  def next(%Missile{lat: lat, long: long, bearing: bearing, ticks: ticks} = missile) do
+    {lat, long, bearing} = Game.next_lat_long(lat, long, bearing, 5)
+    %Missile{missile | lat: lat, long: long, bearing: bearing, ticks: ticks + 1}
+  end
+end
+
 defmodule Player do
   @moduledoc false
   @derive {Jason.Encoder, only: [:handle, :lat, :long, :bearing]}
   defstruct handle: nil,
             index: 0,
             boom: 0,
+            missiles: [],
             lat: nil,
             long: nil,
             bearing: 0
@@ -21,6 +37,16 @@ defmodule Player do
 
   def rotate(%Player{bearing: bearing} = player, angle) do
     %Player{player | bearing: Projections.mod(bearing + angle, 2 * :math.pi())}
+  end
+
+  def shoot(%Player{lat: lat, long: long, bearing: bearing, missiles: missiles} = player) do
+    %Player{player | missiles: [%Missile{id: SmallID.new(), lat: lat, long: long, bearing: bearing} | missiles] }
+  end
+
+  def next(%Player{lat: lat, long: long, bearing: bearing, missiles: missiles} = player) do
+    {lat, long, bearing} = Game.next_lat_long(lat, long, bearing)
+    missiles = Enum.map(missiles, &Missile.next(&1))
+    %Player{player | lat: lat, long: long, bearing: bearing, missiles: missiles}
   end
 end
 
@@ -104,9 +130,9 @@ defmodule Game do
     Projections.mod(bearing + :math.pi(), 2 * :math.pi())
   end
 
-  defp next_lat_long(lat1, long1, bearing) do
+  def next_lat_long(lat1, long1, bearing, f \\ 1) do
     r = 1
-    d = r / 50
+    d = f * r / 50
 
     lat2 =
       :math.asin(
@@ -126,11 +152,6 @@ defmodule Game do
     bearing = next_bearing(lat2, long2, lat1, long1)
 
     {lat2, long2, bearing}
-  end
-
-  def next_player(%Player{lat: lat, long: long, bearing: bearing} = player) do
-    {lat, long, bearing} = next_lat_long(lat, long, bearing)
-    %Player{player | lat: lat, long: long, bearing: bearing}
   end
 
   def upsert_player(%Game{} = game, secret, player) do

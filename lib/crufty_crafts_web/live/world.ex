@@ -65,13 +65,11 @@ defmodule CruftyCraftsWeb.LiveGame do
     end
   end
 
-  def normalize_player_positions(player_map, bounds, projection) do
-    players = Map.values(player_map)
-
-    players
-    |> Enum.map(fn %Player{lat: lat, long: long} -> project(projection, lat, long) end)
+  def normalize_positions(maps, bounds, projection) do
+    maps
+    |> Enum.map(fn %{lat: lat, long: long} -> project(projection, lat, long) end)
     |> Enum.map(&Projections.normalize(&1, bounds))
-    |> Enum.zip(players)
+    |> Enum.zip(maps)
   end
 
   def render(assigns) do
@@ -89,13 +87,19 @@ defmodule CruftyCraftsWeb.LiveGame do
         <%
           xys = meridians(@projection)
           bounds = Projections.bounds(xys)
-          players = normalize_player_positions(@game.players, bounds, @projection)
+          players = normalize_positions(Map.values(@game.players), bounds, @projection)
         %>
         <%= for {x, y} <- Enum.map(xys, &Projections.normalize(&1, bounds)) do %>
           <circle cx={x} cy={y} r="0.001" fill="#222" />
         <% end %>
-        <%= for {{x, y}, %Player{index: index, handle: handle}} <- players do %>
+        <%= for {{x, y}, %Player{index: index, handle: handle, missiles: missiles}} <- players do %>
           <circle id={handle} data-cx={x} data-cy={y} r="0.002" class={"craft craft-#{index}"} phx-hook="Animate" />
+          <%
+            missiles = normalize_positions(missiles, bounds, @projection)
+          %>
+          <%= for {{x, y}, %Missile{id: id}} <- missiles do %>
+            <circle id={id} data-cx={x} data-cy={y} r="0.003" class="missile" phx-hook="Animate" />
+          <% end %>
         <% end %>
       </svg>
     </div>

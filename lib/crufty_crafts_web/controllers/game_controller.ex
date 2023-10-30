@@ -67,6 +67,19 @@ defmodule CruftyCraftsWeb.GameController do
 
   def rotate(conn, _), do: failure(conn, "invalid move args")
 
+  # shoot missile
+  def shoot(conn, %{"game_id" => game_id, "secret" => secret}) do
+    with :ok <- CruftyCraftsWeb.Throttle.rate_limit(secret),
+         {:ok, game} <- GameManager.shoot(game_id: game_id, secret: secret) do
+      success(conn, game)
+    else
+      {:error, msg} -> failure(conn, msg)
+      _ -> failure(conn)
+    end
+  end
+
+  def shoot(conn, _), do: failure(conn, "invalid move args")
+
   # INFO
   def info(conn, %{"game_id" => game_id, "secret" => secret}) do
     with :ok <- CruftyCraftsWeb.Throttle.rate_limit(secret),

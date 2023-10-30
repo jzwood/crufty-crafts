@@ -53,6 +53,11 @@ svg.map {
   color: var(--color);
 }
 
+.missile {
+  fill: white;
+  color: white;
+}
+
 .craft {}
 
 .craft.crashed {

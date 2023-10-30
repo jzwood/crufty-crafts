@@ -69,6 +69,10 @@ defmodule CruftyCrafts.GameManager do
     genserver_call(game_id, {:rotate, secret, angle})
   end
 
+  def shoot(game_id: game_id, secret: secret) do
+    genserver_call(game_id, {:shoot, secret})
+  end
+
   def info(game_id: game_id, secret: secret) do
     genserver_call(game_id, {:info, secret})
   end
@@ -161,6 +165,25 @@ defmodule CruftyCrafts.GameManager do
   end
 
   @impl true
+  def handle_call({:shoot, secret}, _from, %Game{} = game) do
+    with {:ok, player} <- Game.fetch_player(game, secret) do
+      player = Player.shoot(player)
+
+      game =
+        game
+        |> Game.upsert_clock()
+        |> Game.upsert_player(secret, player)
+
+      LiveGame.update_game(game: game)
+
+      {:reply, {:ok, Game.public(game)}, game}
+    else
+      {:error, _msg} = err -> {:reply, err, game}
+      err -> {:reply, err, game}
+    end
+  end
+
+  @impl true
   def handle_call({:info, secret}, _from, %Game{} = game) do
     case Game.fetch_player(game, secret) do
       {:ok, _player} ->
@@ -212,7 +235,7 @@ defmodule CruftyCrafts.GameManager do
   def handle_call(:tick, _from, %Game{players: players} = game) do
     players =
       players
-      |> Enum.map(fn {secret, player} -> {secret, Game.next_player(player)} end)
+      |> Enum.map(fn {secret, player} -> {secret, Player.next(player)} end)
       |> Map.new()
 
     game = %Game{game | players: players}

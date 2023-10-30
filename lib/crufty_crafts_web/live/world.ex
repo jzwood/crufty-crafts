@@ -93,12 +93,12 @@ defmodule CruftyCraftsWeb.LiveGame do
           <circle cx={x} cy={y} r="0.001" fill="#222" />
         <% end %>
         <%= for {{x, y}, %Player{index: index, handle: handle, missiles: missiles}} <- players do %>
-          <circle id={handle} data-cx={x} data-cy={y} r="0.002" class={"craft craft-#{index}"} phx-hook="Animate" />
+          <circle id={handle} data-cx={x} data-cy={y} r="0.004" class={"craft craft-#{index}"} phx-hook="Animate" />
           <%
             missiles = normalize_positions(missiles, bounds, @projection)
           %>
           <%= for {{x, y}, %Missile{id: id}} <- missiles do %>
-            <circle id={id} data-cx={x} data-cy={y} r="0.003" class="missile" phx-hook="Animate" />
+            <circle id={id} data-cx={x} data-cy={y} r="0.002" class={"missile missile-#{index}"} phx-hook="Animate" />
           <% end %>
         <% end %>
       </svg>

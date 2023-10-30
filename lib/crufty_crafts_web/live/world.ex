@@ -94,8 +94,8 @@ defmodule CruftyCraftsWeb.LiveGame do
         <%= for {x, y} <- Enum.map(xys, &Projections.normalize(&1, bounds)) do %>
           <circle cx={x} cy={y} r="0.001" fill="#222" />
         <% end %>
-        <%= for {{x, y}, %Player{index: index}} <- players do %>
-          <circle cx={x} cy={y} r="0.002" class={"craft-#{index}"} />
+        <%= for {{x, y}, %Player{index: index, handle: handle}} <- players do %>
+          <circle id={handle} data-cx={x} data-cy={y} r="0.002" class={"craft craft-#{index}"} phx-hook="Animate" />
         <% end %>
       </svg>
     </div>

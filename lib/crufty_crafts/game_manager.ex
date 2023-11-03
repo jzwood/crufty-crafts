@@ -233,10 +233,7 @@ defmodule CruftyCrafts.GameManager do
 
   @impl true
   def handle_call(:tick, _from, %Game{players: players} = game) do
-    players =
-      players
-      |> Enum.map(fn {secret, player} -> {secret, Player.next(player)} end)
-      |> Map.new()
+    players = Player.next_all(players)
 
     game = %Game{game | players: players}
     # Player.debug_players(Map.values(players)) |> IO.inspect(label: "DEBUG")

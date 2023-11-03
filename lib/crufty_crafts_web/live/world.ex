@@ -75,9 +75,11 @@ defmodule CruftyCraftsWeb.LiveGame do
   def render(assigns) do
     ~H"""
     <div class="bg-black">
-      <%= for %Player{ handle: handle, index: index } <- Map.values(@game.players) do %>
-        <p class={"handles craft-#{index} ttc absolute pt2 left-1"}><%= handle %></p>
-      <% end %>
+      <div class="absolute left-1 top-1">
+        <%= for %Player{ handle: handle, boom: boom, index: index } <- Map.values(@game.players) do %>
+          <p class={"handles craft-#{index} ttc ma2"}><%= handle %>: <%= -1 * boom %></p>
+        <% end %>
+      </div>
       <svg
         viewBox="0 0 1 1"
         xmlns="http://www.w3.org/2000/svg"

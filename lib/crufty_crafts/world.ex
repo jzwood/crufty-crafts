@@ -1,5 +1,6 @@
 defmodule Missile do
   @moduledoc false
+
   @derive {Jason.Encoder, only: [:lat, :long, :bearing, :ticks]}
   defstruct id: nil,
             lat: nil,
@@ -15,6 +16,8 @@ end
 
 defmodule Player do
   @moduledoc false
+  @collision_distance 0.003
+
   @derive {Jason.Encoder, only: [:handle, :lat, :long, :bearing]}
   defstruct handle: nil,
             index: 0,
@@ -40,13 +43,40 @@ defmodule Player do
   end
 
   def shoot(%Player{lat: lat, long: long, bearing: bearing, missiles: missiles} = player) do
-    %Player{player | missiles: [%Missile{id: SmallID.new(), lat: lat, long: long, bearing: bearing} | missiles] }
+    %Player{
+      player
+      | missiles: [%Missile{id: SmallID.new(), lat: lat, long: long, bearing: bearing} | missiles]
+    }
   end
 
   def next(%Player{lat: lat, long: long, bearing: bearing, missiles: missiles} = player) do
     {lat, long, bearing} = Game.next_lat_long(lat, long, bearing)
-    missiles = Enum.map(missiles, &Missile.next(&1))
+    missiles = Enum.map(missiles, fn missile -> Missile.next(missile) end)
     %Player{player | lat: lat, long: long, bearing: bearing, missiles: missiles}
+  end
+
+  defp collisions(
+         %Player{} = player,
+         %Missile{lat: lat, long: long, bearing: bearing, ticks: ticks} = missile
+       ) do
+    {lat, long, bearing} = Game.next_lat_long(lat, long, bearing, 5)
+    dist = Game.distance(player, missile)
+
+    if dist > @collision_distance do
+      {:ok, %Missile{missile | lat: lat, long: long, bearing: bearing, ticks: ticks + 1}}
+    else
+      {:boom, nil}
+    end
+  end
+
+  def next_all(players) do
+    players =
+      Enum.map(players, fn {secret, player} -> {secret, Player.next(player)} end)
+      |> Map.new()
+
+    players
+    # enemies = Enum.filter(players, fn {sec, _} -> sec != secret end)
+    # collisions(players)
   end
 end
 
@@ -152,6 +182,13 @@ defmodule Game do
     bearing = next_bearing(lat2, long2, lat1, long1)
 
     {lat2, long2, bearing}
+  end
+
+  def distance(%{lat: lat1, long: long1}, %{lat: lat2, long: long2}) do
+    r = 1
+    x = (long2 - long1) * :math.cos(0.5 * (lat1 + lat2))
+    y = lat2 - lat1
+    :math.sqrt(x * x + y * y) * r
   end
 
   def upsert_player(%Game{} = game, secret, player) do

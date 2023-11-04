@@ -9,6 +9,9 @@ defmodule Missile do
             ticks: 0
 
   def next(%Missile{lat: lat, long: long, bearing: bearing, ticks: ticks} = missile) do
+    {la, lo, _} = Game.next_lat_long(lat, long, bearing, 5)
+    Game.distance(%{lat: lat, long: long}, %{lat: la, long: lo})
+
     {lat, long, bearing} = Game.next_lat_long(lat, long, bearing, 5)
     %Missile{missile | lat: lat, long: long, bearing: bearing, ticks: ticks + 1}
   end
@@ -16,7 +19,7 @@ end
 
 defmodule Player do
   @moduledoc false
-  @collision_distance 0.003
+  @collision_distance 0.1
 
   @derive {Jason.Encoder, only: [:handle, :lat, :long, :bearing]}
   defstruct handle: nil,
@@ -55,28 +58,37 @@ defmodule Player do
     %Player{player | lat: lat, long: long, bearing: bearing, missiles: missiles}
   end
 
-  defp collisions(
-         %Player{} = player,
-         %Missile{lat: lat, long: long, bearing: bearing, ticks: ticks} = missile
-       ) do
-    {lat, long, bearing} = Game.next_lat_long(lat, long, bearing, 5)
-    dist = Game.distance(player, missile)
+  # returns players map
+  defp collision(secret, enemy_secret, players) do
+    player = %Player{missiles: missiles} = players[secret]
+    enemy = players[enemy_secret]
 
-    if dist > @collision_distance do
-      {:ok, %Missile{missile | lat: lat, long: long, bearing: bearing, ticks: ticks + 1}}
-    else
-      {:boom, nil}
-    end
+    {collisions, missiles} =
+      Enum.reduce(missiles, {0, []}, fn missile, {collisions, missiles} ->
+        dist = Game.distance(enemy, missile)
+
+        if dist > @collision_distance do
+          {collisions, [missile | missiles]}
+        else
+          {collisions + 1, missiles}
+        end
+      end)
+
+    player = %Player{player | missiles: missiles}
+    enemy = %Player{enemy | boom: enemy.boom + collisions}
+    Map.merge(players, %{secret => player, enemy_secret => enemy})
   end
 
   def next_all(players) do
-    players =
-      Enum.map(players, fn {secret, player} -> {secret, Player.next(player)} end)
-      |> Map.new()
+    Enum.reduce(players, players, fn {secret, _player}, players ->
+      player = Player.next(players[secret])
+      players = Map.replace(players, secret, player)
 
-    players
-    # enemies = Enum.filter(players, fn {sec, _} -> sec != secret end)
-    # collisions(players)
+      Enum.reduce(players, players, fn
+        {^secret, _player}, acc -> acc
+        {enemy_secret, _player}, players -> collision(secret, enemy_secret, players)
+      end)
+    end)
   end
 end
 
